@@ -1,0 +1,162 @@
+---
+title: "Proyecto Consumo de Agua"
+author: "Equipo 24 BEDU"
+format: pdf
+editor: visual
+---
+
+# Consumo de Agua en Ciudad de México.
+
+## Objetivo
+
+El consumo general de agua en México es uno de las preocupaciones más grandes de los últimos años debido a la creciente escasez en toda la República. Con los años, se han registrado cientos de casos donde las demandas de agua potable a viviendas han excedido debido al incremento de viviendas, población y la falta de mantenimiento en el servicio de tuberías, lo que ha causado fugas de agua constantemente.
+
+Nuestro trabajo pretende analizar datos del consumo del agua en las alcaldías de la Ciudad de México obtenidos de SACMEX, del primer semestre de 2019. También analizar los registros de reportes de fugas de agua, mala calidad y falta de agua en la Ciudad de México, obtenidos de SACMEX a partir de 2020.
+
+El objetivo del proyecto es poder evaluar y predecir la cantidad de fugas de agua en la Ciudad de México, haciendo una comparación con el incremento de consumo de agua, el crecimiento poblacional y expansión de áreas urbanas en Ciudad de México.
+
+## Descripción de nuestra Base de Datos.
+
+1.  Datos obtenidos de SACMEX: información del primer bimestre de 2019 por concepto de suministro de agua a nivel manzana considerando la facturación por servicio de consumo medido y promedio.
+
+ALEXIS - PREPROCESAMIENTO Y AED
+
+1.  Crecimiento poblacional por alcandía en la Ciudad de México.
+
+2.  Incremento de viviendas, tipos de viviendas, oficinas, tipo de oficinas, otro tipo de infraestructura.
+
+3.  Reportes de fugas. https://datos.cdmx.gob.mx/dataset/reportes-de-agua/
+
+TARYN y Diego - PREPROCESAMIENTO Y AED
+
+1.  El uso del agua por alcaldía: doméstico, industrial, etc.
+
+### Lectura de Datos:
+
+```{r, echo=FALSE}
+
+# Paquetes 
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(tidyr)
+```
+
+1.  Consumo de agua Histórico 2019
+
+```{r}
+
+# Datos 
+df.consumo <- read.csv('E:/BEDU/Curso 5/Proyecto/Datos/consumo_agua_historico_2019.csv')
+```
+
+2.  Reportes de fugas. https://datos.cdmx.gob.mx/dataset/reportes-de-agua
+
+```{r}
+
+df.fugas <- read.csv('E:/BEDU/Curso 5/Proyecto/Datos/reportes_agua_hist.csv')
+
+```
+
+## Preprocesamiento de Datos
+
+### Consumo de Agua en Ciudad de México
+
+**Descripción inicial de los atributos de los dato**
+
+```{r}
+
+# Primeras filas. 
+head(df.consumo)
+
+# Clase de dataframe 
+class(df.consumo)
+
+# Dimensión del dataframe 
+dim(df.consumo)
+
+# Estructura de los dataframe 
+(str(df.consumo))
+
+# Nombre de las columnas 
+names(df.consumo)
+
+```
+
+```{r}
+summary(df.consumo)
+```
+
+Podemos notar que
+
+```{r}
+# Cambio de clase en la columna fecha_referencia
+class(datos$fecha_referencia)
+datos$fecha_referencia <- as.Date.character(datos$fecha_referencia)
+class(datos$fecha_referencia)
+```
+
+**Análisis de Datos Nulos**
+
+```{r}
+str(datos)
+
+#complete.cases(datos)
+
+#na.omit(datos)
+
+columnas <- names(datos)
+
+for (i in columnas){
+  nulos <- sum(!complete.cases(datos$i))
+  print(paste(i, nulos))
+}
+
+
+```
+
+Análisis de Datos Repetidos
+
+## Análisis Exploratorio
+
+```{r}
+summary(df.consumo)
+```
+
+Análisis de la distribución de los datos.
+
+Análisis de las categorías de los datos.
+
+Distribuciones
+
+Medidas de Tendencia Central y Dispersión
+
+Principales inferencias de la información
+
+## Metodología
+
+Descripción de la metodología
+
+### Modelo - Jorge 
+
+Descomposición de la serie de tiempo.
+
+ARIMA(p,d,q)
+
+Criterios de Evaluación: AIC, DF, etc.
+
+### Resultados Shiny - Jorge
+
+Presentación del mejor modelo ARIMA.
+
+Gráficos importantes.
+
+## Conclusiones
+
+Interpretación de los resultados del modelo
+
+## Referencias
+
+-   Limache Sandoval, E. M. (2021). Modelo ARIMA sobre el consumo de agua de uso poblacional en la ciudad de Tacna. *REVISTA VERITAS ET SCIENTIA - UPT*, *10*(1), 69–82. https://doi.org/10.47796/ves.v10i1.461
+
+-   Datos Abiertos: Consumo de agua. SACMEX <https://datos.cdmx.gob.mx/sv/dataset/consumo-agua>
