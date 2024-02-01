@@ -1,7 +1,12 @@
 ---
 title: "Proyecto Consumo de Agua"
 author: "Equipo 24 BEDU"
-format: pdf
+format: 
+  html: 
+    theme: journal
+    toc: true 
+    code-fold: false
+    code-tools: true 
 editor: visual
 ---
 
@@ -17,28 +22,24 @@ El objetivo del proyecto es poder evaluar y predecir la cantidad de fugas de agu
 
 ## Descripción de nuestra Base de Datos.
 
-1.  Datos obtenidos de SACMEX: información del primer bimestre de 2019 por concepto de suministro de agua a nivel manzana considerando la facturación por servicio de consumo medido y promedio.
-
-ALEXIS - PREPROCESAMIENTO Y AED
+1.  **Datos obtenidos de SACMEX: información del primer bimestre de 2019 por concepto de suministro de agua a nivel manzana considerando la facturación por servicio de consumo medido y promedio.**
 
 1.  Crecimiento poblacional por alcandía en la Ciudad de México.
 
 2.  Incremento de viviendas, tipos de viviendas, oficinas, tipo de oficinas, otro tipo de infraestructura.
 
-3.  Reportes de fugas. https://datos.cdmx.gob.mx/dataset/reportes-de-agua/
-
-TARYN y Diego - PREPROCESAMIENTO Y AED
+3.  **Reportes de fugas. https://datos.cdmx.gob.mx/dataset/reportes-de-agua/**
 
 1.  El uso del agua por alcaldía: doméstico, industrial, etc.
 
 ### Lectura de Datos:
 
-```{r, echo=FALSE}
+```{r}
 
-# Paquetes 
-library(ggplot2)
-library(dplyr)
-library(tidyverse)
+# Librerías 
+library(ggplot2) # gráficas
+library(dplyr)   # dataframes 
+library(tidyverse) 
 library(tidyr)
 ```
 
@@ -46,14 +47,14 @@ library(tidyr)
 
 ```{r}
 
-# Datos 
+# Datos de la base de datos de consumo de agua del primer bimestre de 2019 en Ciudad de México.
 df.consumo <- read.csv('E:/BEDU/Curso 5/Proyecto/Datos/consumo_agua_historico_2019.csv')
 ```
 
 2.  Reportes de fugas. https://datos.cdmx.gob.mx/dataset/reportes-de-agua
 
 ```{r}
-
+# Datos de la base de datos de reporte de fugas en Ciudad de México de 2018 a 2022.
 df.fugas <- read.csv('E:/BEDU/Curso 5/Proyecto/Datos/reportes_agua_hist.csv')
 
 ```
@@ -69,75 +70,317 @@ df.fugas <- read.csv('E:/BEDU/Curso 5/Proyecto/Datos/reportes_agua_hist.csv')
 # Primeras filas. 
 head(df.consumo)
 
-# Clase de dataframe 
-class(df.consumo)
-
-# Dimensión del dataframe 
-dim(df.consumo)
-
-# Estructura de los dataframe 
-(str(df.consumo))
-
 # Nombre de las columnas 
 names(df.consumo)
 
+# Acomodamos las filas 
+df.consumo <- df.consumo[, c(1, 2, 3, 7, 4, 5, 6, 10, 11, 9, 8, 12, 13, 14, 15, 16)]
+
+names(df.consumo)
+
+head(df.consumo)
+
+```
+
+```{r}
+# Clase de dataframe 
+class(df.consumo)
+
+```
+
+```{r}
+# Dimensión del dataframe 
+dim(df.consumo)
+
+```
+
+```{r}
+# Estructura de los dataframe 
+(str(df.consumo))
 ```
 
 ```{r}
 summary(df.consumo)
 ```
 
-Podemos notar que
+Podemos notar que existen 16 columnas con la siguiente información:
+
+1.  fecha de referencia tiene clase de character, lo que debemos cambiar.
+
+2.  El año único es 2019 por lo que no se necesita esa columna en la base.
+
+3.  La columna de bimestre solo tiene tres datos que son cualitativos ordinales, que corresponden al primer, segundo y tercer bimestre del año 2019.
+
+4.  La columan_total_mixto se refiere a: el consumo total en inmuebles de uso Doméstico y no doméstico simultáneamente.
+
+5.  consumo_prom_dom se refiere al consumo promedio en inmuebles de uso Doméstico.
+
+6.  consumo_total_dom se refiere al consumo total en inmuebles de uso Doméstico
+
+7.  consumo_prom_mixto se refiere al consumo de uso Doméstico y no doméstico.
+
+8.  consumo_total se refiere al consumo total Doméstico, No doméstico y mixto.
+
+9.  consumo_prom se refiere al consumo promedio Doméstico, No doméstico y mixto.
+
+10. consumo_prom_no_dom se refiere al consumo promedio No Doméstico.
+
+11. consumo_total_no_dom
+
+12. indice_des
+
+13. colonia
+
+14. alcaldía
+
+15. latitud
+
+16. longitud
 
 ```{r}
 # Cambio de clase en la columna fecha_referencia
-class(datos$fecha_referencia)
-datos$fecha_referencia <- as.Date.character(datos$fecha_referencia)
-class(datos$fecha_referencia)
+class(df.consumo$fecha_referencia)
+df.consumo$fecha_referencia <- as.Date.character(df.consumo$fecha_referencia)
+class(df.consumo$fecha_referencia)
+
+head(df.consumo)
+```
+
+```{r}
+summary(df.consumo$fecha_referencia)
 ```
 
 **Análisis de Datos Nulos**
 
 ```{r}
-str(datos)
 
-#complete.cases(datos)
-
-#na.omit(datos)
-
-columnas <- names(datos)
-
-for (i in columnas){
-  nulos <- sum(!complete.cases(datos$i))
-  print(paste(i, nulos))
-}
+data.frame('NA' = apply(X = is.na(df.consumo), MARGIN = 2, FUN = sum))
 
 
 ```
 
-Análisis de Datos Repetidos
+```{r}
+# Eliminando datos nulos de alcaldía 
+
+df.consumo.alcaldia <- complete.cases(df.consumo$alcaldia)
+
+df.consumo.clean <- df.consumo[df.consumo.alcaldia,]
+
+data.frame('NA' = apply(X = is.na(df.consumo.clean), MARGIN = 2, FUN = sum))
+```
+
+```{r}
+# Quitar columna de año 2019
+
+df.consumo.clean <- df.consumo.clean[,-2]
+
+names(df.consumo.clean)
+
+```
 
 ## Análisis Exploratorio
 
 ```{r}
-summary(df.consumo)
+summary(df.consumo.clean)
 ```
 
-Análisis de la distribución de los datos.
+```{r}
+# Cambiar tipo de dato character a factor 
 
-Análisis de las categorías de los datos.
+df.consumo.clean$bimestre  <- as.factor(df.consumo.clean$bimestre)
 
-Distribuciones
+df.consumo.clean$indice_des  <- as.factor(df.consumo.clean$indice_des)
 
-Medidas de Tendencia Central y Dispersión
+df.consumo.clean$alcaldia  <- as.factor(df.consumo.clean$alcaldia)
 
-Principales inferencias de la información
+summary(df.consumo.clean)
 
-## Metodología
+```
 
-Descripción de la metodología
+### Análisis de la distribución de los datos.
 
-### Modelo - Jorge 
+**Análisis de las categorías de los datos.**
+
+Tablas de Frecuencias y Gráficos de Barras para las columnas Bimestre, Índice de Desarrollo, Alcaldía
+
+```{r}
+# Bimestre 
+
+freq <- table(df.consumo.clean$bimestre)
+    transform(freq, 
+          rel.freq=prop.table(Freq))
+ggplot(df.consumo.clean, aes(x = bimestre)) +
+   geom_bar()
+
+
+# Índice de Desarrollo
+
+freq <- table(df.consumo.clean$indice_des)
+    transform(freq, 
+          rel.freq=prop.table(Freq))
+ggplot(df.consumo.clean, aes(x = indice_des)) +
+   geom_bar()
+
+```
+
+```{r}
+
+library(ggplot2)
+
+# Definir una función para crear gráficos de barras y mostrar frecuencias relativas
+
+crear_grafico_barras <- function(variable, angle) {
+  
+  # Calcular frecuencias
+  freq <- table(variable)
+  transform(freq, 
+          rel.freq=prop.table(Freq))
+  # rel_freq <- prop.table(freq)
+
+  # Crear gráfico de barras
+  ggplot(data.frame(variable), aes(x = variable)) +
+    geom_bar(fill = "darkblue", alpha = 0.5) +
+    labs(title = paste("Gráfico de Barras para", deparse(substitute(variable))),
+         x = deparse(substitute(variable)),
+         y = "Frecuencia") +
+    theme_minimal()+
+    theme (axis.text.x  = element_text(angle = angle))
+  }
+  
+# Llamar a la función con la variable 'bimestre'
+crear_grafico_barras(df.consumo.clean$bimestre, 0)
+
+# Llamar a la función con la variable 'indice_des'
+crear_grafico_barras(df.consumo.clean$indice_des, 0)
+
+# Llamar a la función con la variable 'alcaldía'
+crear_grafico_barras(df.consumo.clean$alcaldia, 90)
+
+```
+
+### Distribuciones
+
+**Medidas de Tendencia Central y Dispersión**
+
+Columnas numéricas: "consumo_total_mixto" "consumo_prom_dom" "consumo_total_dom" "consumo_prom_mixto" "consumo_total" "consumo_prom" "consumo_prom_no_dom" "consumo_total_no_dom"
+
+```{r}
+
+df.con.num <- select(df.consumo.clean, c("consumo_prom_mixto", "consumo_total_mixto",
+                                         "consumo_prom_dom", "consumo_total_dom", "consumo_prom_no_dom",
+                                         "consumo_total_no_dom", "consumo_prom", "consumo_total"))
+
+nom.col <- colnames(df.con.num)
+
+```
+
+```{r}
+
+library(moments)
+
+  calcular_medidas <- function(dataframe, columna) {
+    
+    # Calcular las medidas descriptivas
+    # Tendencia Central
+    Media <- mean(dataframe[[columna]], na.rm = TRUE)
+    Mediana <- median(dataframe[[columna]], na.rm = TRUE)
+    
+    # Medidas de Dispersión 
+    Varianza <- var(dataframe[[columna]], na.rm = TRUE)
+    Desv <- sd(dataframe[[columna]], na.rm = TRUE)
+    
+    RangoIQ <- IQR(dataframe[[columna]], na.rm = TRUE)
+    cuartiles <- quantile(dataframe[[columna]], probs = c(0.25, 0.50, 0.75), na.rm = TRUE)
+    deciles <- quantile(dataframe[[columna]], probs = c(0.2, 0.9), na.rm = TRUE)
+    
+    skw <- skewness(dataframe[[columna]], na.rm = TRUE)
+    kts <- kurtosis(dataframe[[columna]], na.rm = TRUE)
+    
+    
+    q.1 <- cuartiles[1]
+    q.2 <- cuartiles[2]  
+    q.3 <- cuartiles[3]
+    d.2 <- deciles[1]
+    d.9 <- deciles [2]
+  
+    # Crear un vector con las medidas
+    medidas_vector <- c(Media, Mediana, Varianza, Desv, RangoIQ, 
+                        q.1, q.2, q.3, d.2, d.9, skw, kts)
+  
+    return(medidas_vector)
+  }
+
+
+df.medidas <- data.frame()
+
+for (i in nom.col){
+  
+  if (length(df.medidas) == 0) {
+    
+    df.medidas <- data.frame(calcular_medidas(df.con.num, i), 
+                             row.names = c('Media', 'Mediana', 'Varianza', 
+                                           'Desviación Estándar', 'Rango IQ',
+                                           '1q', '2q', '3q', '2d', '9d',
+                                           "Skewness", 'Curtosis'))
+    
+    colnames(df.medidas)[1] <- nom.col[1]
+    
+  } else {
+    
+    df.medidas[, i] <- calcular_medidas(df.con.num, i)
+  }
+  
+}
+
+df.medidas
+
+```
+
+```{r}
+# Histogramas 
+
+  
+df.con.num.clean <- df.con.num[complete.cases(df.con.num$consumo_prom_mixto),]
+
+data.frame('NA' = apply(X = is.na(df.con.num.clean), MARGIN = 2, FUN = sum))
+
+ggplot(df.con.num.clean, aes(consumo_prom_mixto)) +
+  geom_histogram() + 
+  labs(title = "Histograma", 
+       x = "Consumo Promedio Simple",
+       y = "Frequency") + 
+  theme_classic()
+
+
+k = ceiling(sqrt(length(df.con.num.clean$consumo_prom_mixto)))
+max(df.con.num.clean$consumo_prom_mixto)
+
+ac = (max(df.con.num.clean$consumo_prom_mixto)-min(df.con.num.clean$consumo_prom_mixto))/k
+bins <- seq(min(df.con.num.clean$consumo_prom_mixto), max(df.con.num.clean$consumo_prom_mixto), by = ac)
+hist(df.con.num.clean$consumo_prom_mixto, breaks = bins, main = "Histograma Consumo Promedio Mixto")
+```
+
+```{r}
+# Boxplots 
+
+boxplot(df.con.num.clean$consumo_prom_mixto, horizontal = TRUE)
+
+
+```
+
+### Principales inferencias de la información
+
+Gráficos
+
+Interpretación y Conclusiones
+
+
+
+## Metodología del Modelo
+
+Descripción de la metodología del Modelo
+
+### Modelo - Jorge
 
 Descomposición de la serie de tiempo.
 
