@@ -1,0 +1,132 @@
+---
+title: "Historico agua"
+author: "Equipo 24 Bedu"
+format: html
+editor: visual
+---
+
+## Reportes de fugas de agua
+
+Este conjunto de datos muestra información diaria referente a reportes realizados por ciudadanos usuarios del servicio de agua potable de al CDMX
+
+## Descripción de la Base de Datos
+
+Datos obtenidos de: <https://datos.cdmx.gob.mx/dataset/reportes-de-agua>
+
+## Lectura de Datos
+
+```{r}
+# Librerías 
+library(ggplot2) # gráficas
+library(dplyr)   # dataframes 
+library(tidyr)
+```
+
+# Reportes agua histórico
+
+```{r}
+file.choose()
+df.reportes = read.csv("C:\\Bedu\\Historico\\Reportes_agua_hist\\reportes_agua_hist.csv")
+View(df.reportes)
+```
+
+# Primeras filas
+
+```{r}
+head(df.reportes)
+```
+
+# Clase de dataframe
+
+```{r}
+class(df.reportes)
+```
+
+# Dimensión dataframe
+
+```{r}
+dim(df.reportes)
+```
+
+## Estructura
+
+```{r}
+(str(df.reportes))
+```
+
+## Nombre de las columnas
+
+```{r}
+names(df.reportes)
+```
+
+## Resumen
+
+```{r}
+summary(df.reportes)
+```
+
+## Cambio de clase de columna fecha
+
+```{r}
+df.reportes <- df.reportes %>%
+  mutate(fecha = as.Date(fecha))
+summary(df.reportes)
+```
+
+## Datos nulos
+
+```{r}
+print(summary(df.reportes))
+cantidad_nulos <- sum(is.na(df.reportes))
+```
+
+```{r}
+print("Cantidad de datos nulos en el DataFrame:")
+print(cantidad_nulos)
+cantidad_nulos_por_columna <- colSums(is.na(df.reportes))
+print("Cantidad de datos nulos por columna en el DataFrame:")
+```
+
+```{r}
+print(cantidad_nulos_por_columna)
+```
+
+```{r}
+df.reportes.alcaldia <- complete.cases(df.reportes$alcaldia)
+df.reportes.clean <- df.reportes[df.reportes.alcaldia,]
+data.frame('NA' = apply(X = is.na(df.reportes.clean), MARGIN = 2, FUN = sum))
+```
+
+## Analisis datos nulos
+
+```{r}
+data.frame('NA' = apply(X = is.na(df.reportes), MARGIN = 2, FUN = sum))
+df.reportes.clean <- df.reportes[df.reportes.alcaldia,]
+data.frame('NA' = apply(X = is.na(df.reportes.clean), MARGIN = 2, FUN = sum))
+```
+
+## Analisis exploratorio
+
+```{r}
+summary(df.reportes.clean)
+```
+
+## Cambiar caracter a factor
+
+```{r}
+df.reportes.clean$alcaldia  <- as.factor(df.reportes.clean$alcaldia)
+summary(df.reportes.clean)
+```
+
+## Alcaldia
+
+```{r}
+library(ggplot2)
+freq <- table(df.reportes.clean$alcaldia)
+transform(freq,
+          rel.freq=prop.table(Freq))
+ggplot(df.reportes.clean, aes(x = alcaldia)) +
+  geom_bar()
+df.con.num <- select(df.reportes.clean, c("alcaldia"))
+```
