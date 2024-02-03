@@ -39,7 +39,6 @@ El objetivo del proyecto es poder evaluar y predecir la cantidad de fugas de agu
 # Librerías 
 library(ggplot2) # gráficas
 library(dplyr)   # dataframes 
-library(tidyverse) 
 library(tidyr)
 ```
 
@@ -267,10 +266,19 @@ Columnas numéricas: "consumo_total_mixto" "consumo_prom_dom" "consumo_total_dom
 ```{r}
 
 df.con.num <- select(df.consumo.clean, c("consumo_prom_mixto", "consumo_total_mixto",
-                                         "consumo_prom_dom", "consumo_total_dom", "consumo_prom_no_dom",
+                                         "consumo_prom_dom", "consumo_total_dom",
+                                         "consumo_prom_no_dom",
                                          "consumo_total_no_dom", "consumo_prom", "consumo_total"))
 
-nom.col <- colnames(df.con.num)
+
+
+df.con.num.1 <- cbind('alcaldia' = df.consumo.clean$alcaldia, df.con.num)
+
+class(df.con.num.1)
+
+nom.col <- colnames(df.con.num.1[,2:9])
+
+nom.col
 
 ```
 
@@ -313,43 +321,181 @@ library(moments)
 
 df.medidas <- data.frame()
 
-for (i in nom.col){
-  
-  if (length(df.medidas) == 0) {
+
+
+  for (i in nom.col){
     
-    df.medidas <- data.frame(calcular_medidas(df.con.num, i), 
-                             row.names = c('Media', 'Mediana', 'Varianza', 
-                                           'Desviación Estándar', 'Rango IQ',
-                                           '1q', '2q', '3q', '2d', '9d',
-                                           "Skewness", 'Curtosis'))
+    if (length(df.medidas) == 0) {
+      
+      df.medidas <- data.frame(calcular_medidas(df.con.num, i), 
+                               row.names = c('Media', 'Mediana', 'Varianza', 
+                                             'Desviación Estándar', 'Rango IQ',
+                                             '1q', '2q', '3q', '2d', '9d',
+                                             "Skewness", 'Curtosis'))
+      
+      colnames(df.medidas)[1] <- nom.col[1]
+      
+    } else {
+      
+      df.medidas[, i] <- calcular_medidas(df.con.num, i)
+    }
     
-    colnames(df.medidas)[1] <- nom.col[1]
-    
-  } else {
-    
-    df.medidas[, i] <- calcular_medidas(df.con.num, i)
   }
-  
-}
+
+
+
 
 df.medidas
 
 ```
 
 ```{r}
+prueba  <- df.consumo.clean %>%
+           select(alcaldia, consumo_total_mixto, consumo_prom_dom) %>%                       
+           group_by(alcaldia) %>%
+           summarize(promedio = mean(consumo_total_mixto, na.rm = TRUE))
+
+prueba
+
+
+# Alcaldías 
+
+ALVARO_OBREGON  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto,
+                                         consumo_prom_dom, consumo_total_dom,
+                                         consumo_prom_no_dom,consumo_total_no_dom, 
+                                         consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'ALVARO OBREGON') 
+
+
+AZCAPOTZALCO  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto,
+                                         consumo_prom_dom, consumo_total_dom,
+                                         consumo_prom_no_dom,consumo_total_no_dom, 
+                                         consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'AZCAPOTZALCO') 
+
+	
+BENITO_JUAREZ  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto,
+                                         consumo_prom_dom, consumo_total_dom,
+                                         consumo_prom_no_dom,consumo_total_no_dom, 
+                                         consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'BENITO JUAREZ') 
+
+COYOACAN  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto,
+                                         consumo_prom_dom, consumo_total_dom,
+                                         consumo_prom_no_dom,consumo_total_no_dom, 
+                                         consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'COYOACAN') 
+
+CUAJIMALPA  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto,
+                                         consumo_prom_dom, consumo_total_dom,
+                                         consumo_prom_no_dom,consumo_total_no_dom, 
+                                         consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'CUAJIMALPA DE MORELOS') 
+
+CUAUHTEMOC  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto,
+                                         consumo_prom_dom, consumo_total_dom,
+                                         consumo_prom_no_dom,consumo_total_no_dom, 
+                                         consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'CUAUHTEMOC') 
+
+GUSTAVO_MADERO <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto,
+                                         consumo_prom_dom, consumo_total_dom,
+                                         consumo_prom_no_dom,consumo_total_no_dom, 
+                                         consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'GUSTAVO A. MADERO') 
+
+	
+IZTACALCO  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto,
+                                         consumo_prom_dom, consumo_total_dom,
+                                         consumo_prom_no_dom,consumo_total_no_dom, 
+                                         consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'IZTACALCO') 
+
+
+iztapalapa  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto, 
+                          consumo_prom_dom, consumo_total_dom, consumo_prom_no_dom, 
+                          consumo_total_no_dom, consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'IZTAPALAPA')
+
+la_magdalena_contreras  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto, 
+                          consumo_prom_dom, consumo_total_dom, consumo_prom_no_dom, 
+                          consumo_total_no_dom, consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'LA MAGDALENA CONTRERAS')
+
+miguel_hidalgo  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto, 
+                          consumo_prom_dom, consumo_total_dom, consumo_prom_no_dom, 
+                          consumo_total_no_dom, consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'MIGUEL HIDALGO')
+
+milpa_alta  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto, 
+                          consumo_prom_dom, consumo_total_dom, consumo_prom_no_dom, 
+                          consumo_total_no_dom, consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'MILPA ALTA')
+tlahuac  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto, 
+                          consumo_prom_dom, consumo_total_dom, consumo_prom_no_dom, 
+                          consumo_total_no_dom, consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'TLAHUAC')
+
+tlalpan  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto,
+                          consumo_prom_dom, consumo_total_dom, consumo_prom_no_dom, 
+                          consumo_total_no_dom, consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'TLALPAN')
+
+venustiano_carranza  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto, 
+                          consumo_prom_dom, consumo_total_dom, consumo_prom_no_dom, 
+                          consumo_total_no_dom, consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'VENUSTIANO CARRANZA')
+
+xochimilco  <- df.consumo.clean %>%
+                   select(alcaldia, consumo_prom_mixto, consumo_total_mixto, 
+                          consumo_prom_dom, consumo_total_dom, consumo_prom_no_dom, 
+                          consumo_total_no_dom, consumo_prom, consumo_total) %>%                       
+                   filter(alcaldia == 'XOCHIMILCO')
+
+list(ALVARO_OBREGON, AZCAPOTZALCO, BENITO_JUAREZ, COYOACAN, CUAJIMALPA, CUAJIMALPA, CUAUHTEMOC, GUSTAVO_MADERO, IZTACALCO, iztapalapa, la_magdalena_contreras, miguel_hidalgo, milpa_alta, tlahuac, tlalpan, venustiano_carranza, xochimilco)
+
+```
+
+
+
+```{r}
 # Histogramas 
 
-  
-df.con.num.clean <- df.con.num[complete.cases(df.con.num$consumo_prom_mixto),]
+#df.con.num.clean <- df.con.num[complete.cases(df.con.num$consumo_prom_mixto),]
 
-data.frame('NA' = apply(X = is.na(df.con.num.clean), MARGIN = 2, FUN = sum))
+#data.frame('NA' = apply(X = is.na(df.con.num.clean), MARGIN = 2, FUN = sum))
 
-ggplot(df.con.num.clean, aes(consumo_prom_mixto)) +
+
+ggplot(df.con.num.1, aes(consumo_prom_mixto)) +
   geom_histogram() + 
   labs(title = "Histograma", 
-       x = "Consumo Promedio Simple",
+       x = "Consumo Promedio Mixto",
        y = "Frequency") + 
   theme_classic()
+
+ggplot(df.con.num.clean, aes(consumo_prom)) +
+  geom_histogram() + 
+  labs(title = "Histograma", 
+       x = "Consumo Promedio",
+       y = "Frequency") + 
+  theme_classic()
+
+
 
 
 k = ceiling(sqrt(length(df.con.num.clean$consumo_prom_mixto)))
