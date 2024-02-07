@@ -1,0 +1,1100 @@
+---
+title: "Proyecto Consumo de Agua"
+author: "Equipo 24 BEDU"
+format: 
+  html: 
+    theme: journal
+    toc: true 
+    code-fold: false
+    code-tools: true 
+editor: visual
+---
+
+![](Imagen1.png){fig-align="right"}
+
+# Consumo de Agua en Ciudad de México.
+
+## Objetivo
+
+El consumo general de agua en México es uno de las preocupaciones más grandes de los últimos años debido a la creciente escasez en toda la República. Con los años, se han registrado cientos de casos donde las demandas de agua potable a viviendas han excedido debido al incremento de viviendas, población y la falta de mantenimiento en el servicio de tuberías, lo que ha causado fugas de agua constantemente.
+
+Nuestro trabajo pretende analizar datos del consumo del agua en las alcaldías de la Ciudad de México obtenidos de SACMEX, comparando los resultados de los tres primeros bimestres de 2019. También analizar los registros de reportes de fugas de agua, mala calidad y falta de agua en la Ciudad de México, obtenidos de SACMEX a partir de 2020 con un modelo de series de tiempo.
+
+El objetivo del proyecto es poder evaluar y predecir la cantidad de fugas de agua en la Ciudad de México, haciendo una comparación con el incremento de consumo de agua en las diferentes alcaldías de la Ciudad de México.
+
+## Descripción de nuestra Base de Datos.
+
+1.  **Datos obtenidos de SACMEX: información del primer bimestre de 2019 por concepto de suministro de agua a nivel manzana considerando la facturación por servicio de consumo medido y promedio.** [**https://datos.cdmx.gob.mx/sv/dataset/consumo-agua**](https://datos.cdmx.gob.mx/sv/dataset/consumo-agua){.uri}
+
+2.  **Reportes de agua: información diaria** **referente a los reportes realizados por ciudadanos con respecto a servicios del Sistema de Aguas de la Ciudad de México en tres ejes: Drenaje, agua potable y agua tratada.** <https://datos.cdmx.gob.mx/dataset/reportes-de-agua>
+
+### Lectura de Datos:
+
+```{r message=FALSE, warning=FALSE}
+
+# Librerías 
+library(ggplot2) # gráficas
+library(dplyr)   # dataframes 
+library(tidyr)
+```
+
+1.  Consumo de agua Histórico 2019
+
+```{r}
+
+# Datos de la base de datos de consumo de agua del primer bimestre de 2019 en Ciudad de México.
+df.consumo <- read.csv('E:/BEDU/Curso 5/Proyecto/Datos/consumo_agua_historico_2019.csv')
+```
+
+2.  Reportes de fugas. https://datos.cdmx.gob.mx/dataset/reportes-de-agua
+
+```{r}
+# Datos de la base de datos de reporte de fugas en Ciudad de México de 2018 a 2022.
+df.fugas <- read.csv('E:/BEDU/Curso 5/Proyecto/Datos/reportes_agua_hist.csv')
+
+```
+
+## Consumo de Agua en Ciudad de México
+
+### Preprocesamiento de Datos
+
+**Descripción inicial de los atributos de los dato**
+
+```{r}
+
+# Clase de dataframe 
+class(df.consumo)
+
+# Dimensión del dataframe 
+dim(df.consumo)
+
+# Estructura de los dataframe 
+(str(df.consumo))
+
+# Primeras filas. 
+head(df.consumo)
+
+# Acomodamos las filas 
+df.consumo <- df.consumo[, c(1, 2, 3, 7, 4, 5, 6, 10, 11, 9, 8, 12, 13, 14, 15, 16)]
+
+# Nombre de las columnas 
+names(df.consumo)
+
+summary(df.consumo)
+
+
+```
+
+Podemos notar que existen 16 columnas con la siguiente información:
+
+1.  fecha de referencia tiene clase de character, lo que debemos cambiar.
+
+2.  El año único es 2019 por lo que no se necesita esa columna en la base.
+
+3.  La columna de bimestre solo tiene tres datos que son cualitativos ordinales, que corresponden al primer, segundo y tercer bimestre del año 2019.
+
+4.  La columan_total_mixto se refiere a: el consumo total en inmuebles de uso Doméstico y no doméstico simultáneamente.
+
+5.  consumo_prom_dom se refiere al consumo promedio en inmuebles de uso Doméstico.
+
+6.  consumo_total_dom se refiere al consumo total en inmuebles de uso Doméstico
+
+7.  consumo_prom_mixto se refiere al consumo de uso Doméstico y no doméstico.
+
+8.  consumo_total se refiere al consumo total Doméstico, No doméstico y mixto.
+
+9.  consumo_prom se refiere al consumo promedio Doméstico, No doméstico y mixto.
+
+10. consumo_prom_no_dom se refiere al consumo promedio No Doméstico.
+
+11. consumo_total_no_dom se refiere al consumo total No Doméstico.
+
+12. indice_des: Construcción estadística mediante variables de tipo socioeconómico derivadas de información oficial, permite diferenciar territorialmente a la población de la Ciudad de México de acuerdo a su nivel de desarrollo económico, agregando la información a nivel manzana. ALTO, MEDIO, BAJO Y POPULAR.
+
+13. colonia
+
+14. alcaldía: 16 alcaldías de la Ciudad de México
+
+15. latitud
+
+16. longitud
+
+```{r}
+# Cambio de clase en la columna fecha_referencia
+class(df.consumo$fecha_referencia)
+df.consumo$fecha_referencia <- as.Date.character(df.consumo$fecha_referencia)
+class(df.consumo$fecha_referencia)
+
+```
+
+**Análisis de Datos Nulos**
+
+```{r}
+
+data.frame('NA' = apply(X = is.na(df.consumo), MARGIN = 2, FUN = sum))
+
+```
+
+```{r}
+# Eliminando datos nulos de alcaldía 
+
+df.consumo.alcaldia <- complete.cases(df.consumo$alcaldia)
+
+df.consumo.clean <- df.consumo[df.consumo.alcaldia,]
+
+data.frame('NA' = apply(X = is.na(df.consumo.clean), MARGIN = 2, FUN = sum))
+```
+
+```{r}
+# Quitar columna de año 2019
+
+df.consumo.clean <- df.consumo.clean[,-2]
+
+names(df.consumo.clean)
+
+```
+
+### Análisis Exploratorio
+
+```{r}
+summary(df.consumo.clean)
+```
+
+```{r}
+# Cambiar tipo de dato character a factor 
+
+df.consumo.clean$bimestre  <- as.factor(df.consumo.clean$bimestre)
+
+df.consumo.clean$indice_des  <- as.factor(df.consumo.clean$indice_des)
+
+df.consumo.clean$alcaldia  <- as.factor(df.consumo.clean$alcaldia)
+
+summary(df.consumo.clean)
+
+```
+
+### Análisis de la distribución de los datos.
+
+**Análisis de las categorías de los datos.**
+
+Tablas de Frecuencias y Gráficos de Barras para las columnas Bimestre, Índice de Desarrollo, Alcaldía
+
+```{r}
+
+
+# Tabla de Frecuencias Absolutas, Relativas
+  
+freq_id <- df.consumo.clean %>%
+           group_by(alcaldia, bimestre, indice_des) %>%
+           summarise(n = n()) %>%
+           mutate(prop =  paste(round(100*prop.table(n), 2), "%", sep="")) 
+
+# Gráfico de Frecuencias absolutas
+
+graf_id <- df.consumo.clean %>%
+          ggplot(aes(x = indice_des, fill = alcaldia)) +
+           geom_bar() +
+           facet_wrap(~bimestre)+
+            labs(title = "Consumo en m3 de agua", 
+                 subtitle = "Por alcaldía e índice de desarrollo. 2019",
+                 x = "Indice de Desarrollo",
+                 y = "Frecuencia") +
+           theme_minimal() +
+           theme(axis.text.x  = element_text(angle = 90))
+graf_id
+
+
+```
+
+### Distribuciones
+
+**Medidas de Tendencia Central y Dispersión**
+
+#### Análisis por Bimestre
+
+```{r}
+
+library(moments)
+
+# Función para calcular medidas de tendencia central y dispersión.
+
+  calcular_medidas <- function(dataframe, columna) {
+    
+    # Calcular las medidas descriptivas
+    
+    Max <- max(dataframe[[columna]], na.rm = TRUE)
+    Min <- min(dataframe[[columna]], na.rm = TRUE)
+    
+    # Tendencia Central
+    Media <- mean(dataframe[[columna]], na.rm = TRUE)
+    Mediana <- median(dataframe[[columna]], na.rm = TRUE)
+    
+    # Medidas de Dispersión 
+    Varianza <- var(dataframe[[columna]], na.rm = TRUE)
+    Desv <- sd(dataframe[[columna]], na.rm = TRUE)
+    
+    RangoIQ <- IQR(dataframe[[columna]], na.rm = TRUE)
+    cuartiles <- quantile(dataframe[[columna]], probs = c(0.25, 0.50, 0.75), na.rm = TRUE)
+    deciles <- quantile(dataframe[[columna]], probs = c(0.2, 0.9), na.rm = TRUE)
+    
+    skw <- skewness(dataframe[[columna]], na.rm = TRUE)
+    kts <- kurtosis(dataframe[[columna]], na.rm = TRUE)
+    
+    
+    q.1 <- cuartiles[1]
+    q.2 <- cuartiles[2]  
+    q.3 <- cuartiles[3]
+    d.2 <- deciles[1]
+    d.9 <- deciles [2]
+  
+    # Crear un vector con las medidas
+    medidas_vector <- round(c(Max, Min, Media, Mediana, Varianza, Desv, RangoIQ, 
+                        q.1, q.2, q.3, d.2, d.9, skw, kts),2)
+  
+    return(medidas_vector)
+  }
+  
+```
+
+```{r}
+
+# Seleccionando datos por bimestre, quitando outliers alrededor del 10% de la cola derecha.
+
+out_nivel <- 3000
+
+bim_1 <- df.consumo.clean %>%
+         filter(bimestre == 1) %>%
+         filter(consumo_total < out_nivel) %>%
+         select(alcaldia, consumo_total, indice_des)
+
+bim_2 <- df.consumo.clean %>%
+         filter(bimestre == 2) %>%
+         filter(consumo_total < out_nivel) %>%
+         select(alcaldia, consumo_total, indice_des)
+
+bim_3 <- df.consumo.clean %>%
+         filter(bimestre == 3) %>%
+         filter(consumo_total < out_nivel) %>%
+         select(alcaldia, consumo_total, indice_des)
+
+
+```
+
+```{r}
+df.medidas.ct <- data.frame(totales = calcular_medidas(df.consumo.clean, 'consumo_total'), 
+                               row.names = c('Máximo', 'Mínimo',
+                                              'Media', 'Mediana', 'Varianza', 
+                                             'Desviación Estándar', 'Rango IQ',
+                                             '1q', '2q', '3q', '2d', '9d',
+                                             "Skewness", 'Curtosis'))
+
+df.medidas.ct[, 'bimestre 1'] <- calcular_medidas(bim_1, 'consumo_total')
+df.medidas.ct[, 'bimestre 2'] <- calcular_medidas(bim_2, 'consumo_total')
+df.medidas.ct[, 'bimestre 3'] <- calcular_medidas(bim_3, 'consumo_total')
+
+df.medidas.ct
+
+
+```
+
+```{r}
+# Outliers
+
+out_nivel <- 3000
+
+df.outliers <- df.consumo.clean %>%
+              filter(consumo_total > out_nivel) %>%
+              group_by(bimestre) %>%
+              summarise(n = n()) %>%
+              mutate(prop =  paste(round(100*prop.table(n), 2), "%", sep=""))   
+
+
+# Histogramas 
+
+graf.1 <- df.consumo.clean %>%
+          filter(consumo_total < out_nivel) %>%
+          ggplot(aes(consumo_total, fill=bimestre)) +
+          geom_histogram(bins = 5) +
+          #facet_wrap(~indice_des) +
+          labs(title = "Histograma", 
+              x = "Consumo Total",
+              y = "Frequency") + 
+          theme_classic()
+
+
+# Boxplot
+
+graf.2 <- df.consumo.clean %>%
+          filter(consumo_total < out_nivel) %>%
+          ggplot(aes(consumo_total, fill=bimestre)) +
+          geom_boxplot(varwidth = TRUE, alpha=0.2) +
+          #facet_wrap(~indice_des) +
+          labs(title = "Histograma", 
+              x = "Consumo Total",
+              y = "Frequency") + 
+          theme_classic()
+
+
+
+graf.3 <- df.consumo.clean %>%
+          filter(consumo_total < 5000) %>%
+          ggplot(aes(x = consumo_total, fill=bimestre)) +
+          geom_density() + 
+          facet_wrap(~bimestre) +
+          #guides(fill = guide_legend(title = "Indice Desarrollo"))+
+          labs(title = "Densidad", 
+            x = "Consumo Total",
+            y = "Frequency")+ 
+          theme_classic()+
+           theme(axis.text.x  = element_text(angle = 90))
+
+
+# Para usar plot_grid se necesita la libreria cowplot
+library(cowplot)
+
+consumo_total_gr <- plot_grid(graf.1, graf.2, graf.3)
+
+consumo_total_gr
+
+```
+
+#### Análisis por Alcaldía
+
+Columnas numéricas: "consumo_total_mixto" "consumo_prom_dom" "consumo_total_dom" "consumo_prom_mixto" "consumo_total" "consumo_prom" "consumo_prom_no_dom" "consumo_total_no_dom"
+
+```{r}
+# Para crear un dataframe con el resumen de las medidas por Alcaldía. 
+  
+df.con.num <- select(df.consumo.clean, c("alcaldia", "consumo_prom_mixto", "consumo_total_mixto",
+                                         "consumo_prom_dom", "consumo_total_dom",
+                                         "consumo_prom_no_dom",
+                                         "consumo_total_no_dom", "consumo_prom", "consumo_total"))
+
+
+nom.col <- colnames(df.con.num[,2:9])
+
+nom.col
+  
+# CAMBIAR EL NOMBRE DE LA ALCALDÍA (En aplicación Shiny se muestra más dinámico)
+
+# Alcaldía = Benito Juarez, Atributo = Consumo Promedio
+BENITO.1 <- df.con.num %>%
+                 filter(alcaldia == 'BENITO JUAREZ', )
+
+
+
+df.medidas <- data.frame()
+
+  for (i in nom.col){
+    
+    if (length(df.medidas) == 0) {
+      
+      df.medidas <- data.frame(calcular_medidas(BENITO.1, i), 
+                               row.names = c('Máximo', 'Mínimo',
+                                              'Media', 'Mediana', 'Varianza', 
+                                             'Desviación Estándar', 'Rango IQ',
+                                             '1q', '2q', '3q', '2d', '9d',
+                                             "Skewness", 'Curtosis'))
+      
+      colnames(df.medidas)[1] <- nom.col[1]
+      
+    } else {
+      
+      df.medidas[, i] <- calcular_medidas(BENITO.1, i)
+    }
+    
+  }
+
+
+df.medidas
+
+```
+
+```{r}
+
+# Alcaldía = Benito Juarez, Atributo = Consumo Promedio
+BENITO <- df.consumo.clean %>%
+                 filter(alcaldia == 'BENITO JUAREZ', )
+
+# Outliers
+
+BENITO_OUT <- df.consumo.clean %>%
+              filter(alcaldia == 'BENITO JUAREZ', bimestre == 1) %>%
+              filter(consumo_prom > 60) %>%
+              group_by(colonia) %>%
+              summarise(n = n()) #%>%
+              #mutate(prop =  paste(round(100*prop.table(n), 2), "%", sep=""))   
+
+
+# Histogramas 
+
+aa1 <- BENITO %>%
+    filter(consumo_prom < 60) %>%
+    ggplot(aes(consumo_prom, fill=indice_des)) +
+    geom_histogram(bins = 5) +
+    #facet_wrap(~indice_des) +
+    labs(title = "Histograma", 
+        x = "Consumo",
+        y = "Frequency") + 
+    theme_classic()
+
+aa1
+
+
+# Boxplot
+
+aa2 <- BENITO  %>% 
+    filter(consumo_prom < 60) %>%
+    ggplot(aes(y=consumo_prom, fill=indice_des)) +
+    geom_boxplot(varwidth = TRUE, alpha=0.2) +
+    #facet_wrap(~indice_des) +
+    labs(title = "Boxplot", 
+        x = "Consumo",
+        y = "Frequency")+ 
+    theme_classic()
+
+aa2
+
+
+aa3 <- BENITO %>%
+      filter(consumo_prom < 60) %>%
+      ggplot(aes(x = consumo_prom, fill = indice_des)) +
+      geom_density() + 
+      facet_wrap(~indice_des) +
+      guides(fill = guide_legend(title = "Indice Desarrollo"))+
+      labs(title = "Densidad", 
+        x = "Consumo",
+        y = "Frequency")+ 
+      theme_classic()
+
+aa3
+
+
+
+
+# Para usar plot_grid se necesita la libreria cowplot
+library(cowplot)
+
+consumo_prom_gr <- plot_grid( aa1, aa2, aa3)
+
+consumo_prom_gr
+```
+
+### Principales inferencias de la información
+
+#### Interpretación de los datos.
+
+Por Alcaldía, las tablas de frecuencia muestran un comportamiento similar por cada bimestre e índice de desarrollo. Podemos observar que el sector con índice de desarrollo bajo es el que presenta mayor consumo por metro cúbico que es consistente en cada bimestre, siguiéndolo los sectores alto y popular, mientras que el sector medio es el que presenta menores consumos por metro cúbico.
+
+```{r}
+graf_id
+```
+
+También podemos observar en los gráficos por bimestre del consumo total, que los datos se distribuyen de manera similar, con sesgo a la izquierda y con una mediana, media y desviación parecida en cada bimestre.
+
+```{r}
+consumo_total_gr
+```
+
+```{r}
+df.medidas.ct
+```
+
+**Análisis de las distribuciones por alcaldía**
+
+```{r}
+levels(df.consumo.clean$alcaldia)
+```
+
+Se puede observar en la mayoría de las distribuciones de las alcaldías, que los datos de consumo de agua se encuentran en un rango que va desde 0 a 4000 cuando son consumos totales de agua en metros cúbicos en todos los sectores de desarrollo socioeconómico. Mientras que presentan un consumo promedio que se centra en un rango de 0 a 100 metros cúbicos de agua.
+
+Por otra parte, el conjunto de observaciones que tiene más frecuencia en su consumo total de agua se encuentra en el sector con índice de desarrollo bajo y en el popular en la mayoría de las alcaldías, con algunas excepciones como Benito Juárez, Cuajimalpa, y Coyoacán donde el sector con índice de desarrollo alto también contiene la mayoría de los consumos totales. Mientras que en el consumo promedio los sectores con índice de desarrollo bajo y popular representan el conjunto más significativo de los datos.
+
+Todas las distribuciones están sesgadas a la izquierda, tanto de consumo total como promedio en cada alcaldía. Los datos atípicos contienen valores en el último decil con cantidades considerablemente grandes, por lo que se decidió eliminarlos del análisis.
+
+## Registro Histórico de Reportes de Fugas 2018 - 2022
+
+### Preprocesamiento de Datos
+
+**Descripción inicial de los atributos de los datos**
+
+Este conjunto de datos muestra información diaria referente a reportes realizados por ciudadanos usuarios del servicio de agua potable de al CDMX.
+
+Datos obtenidos de: https://datos.cdmx.gob.mx/dataset/reportes-de-agua
+
+```{r}
+# Clase de dataframe 
+class(df.fugas)
+
+# Dimensión del dataframe 
+dim(df.fugas)
+
+# Primeras filas. 
+head(df.fugas)
+
+# Estructura de los dataframe 
+(str(df.fugas))
+
+# Acomodamos las filas 
+df.fugas <- df.fugas[, c(7, 1, 2, 3, 4, 5, 6, 8, 9, 10)]
+
+# Nombre de las columnas 
+names(df.fugas)
+
+summary(df.fugas)
+
+```
+
+Podemos notar que existen 10 columnas con la siguiente información:
+
+1.  fecha
+2.  folio
+3.  tipo_de_falla
+4.  quien_atiende
+5.  latitud
+6.  longitud
+7.  codigo_postal
+8.  colonia_registro_sacmex
+9.  colonia_datos_abiertos
+10. alcaldia
+
+```{r}
+# Cambio de clase en la columna fecha
+df.fugas <- df.fugas %>%
+  mutate(fecha = as.Date(fecha))
+
+
+# Cambio de clase en la columna codigo_postal
+df.fugas <- df.fugas %>%
+  mutate(codigo_postal = as.character(codigo_postal))
+  summary(df.fugas)
+
+```
+
+**Análisis de Datos Nulos**
+
+```{r}
+
+data.frame('NA' = apply(X = is.na(df.fugas), MARGIN = 2, FUN = sum))
+
+```
+
+```{r}
+# Eliminando datos nulos de alcaldía 
+
+df.fugas.alcaldia <- complete.cases(df.fugas$alcaldia)
+
+df.fugas.clean <- df.fugas[df.fugas.alcaldia,]
+
+data.frame('NA' = apply(X = is.na(df.fugas.clean), MARGIN = 2, FUN = sum))
+
+
+# Eliminando datos nulos de tipo de falla 
+
+df.fugas.tf <- complete.cases(df.fugas.clean$tipo_de_falla)
+
+df.fugas.clean <- df.fugas.clean[df.fugas.tf,]
+
+data.frame('NA' = apply(X = is.na(df.fugas.clean), MARGIN = 2, FUN = sum))
+```
+
+### Análisis Exploratorio
+
+```{r}
+summary(df.fugas.clean)
+```
+
+```{r}
+# Cambiar tipo de dato character a factor 
+
+df.fugas.clean$tipo_de_falla  <- as.factor(df.fugas.clean$tipo_de_falla)
+
+df.fugas.clean$quien_atiende  <- as.factor(df.fugas.clean$quien_atiende)
+
+df.fugas.clean$alcaldia  <- as.factor(df.fugas.clean$alcaldia)
+
+
+levels(df.fugas.clean$tipo_de_falla)
+```
+
+### Análisis de la distribución de los datos.
+
+**Análisis de las categorías de los datos.**
+
+Tablas de Frecuencias y Gráficos de Barras para las columnas Tipos de Falla y Alcaldía
+
+```{r}
+
+# Tabla de Frecuencias Absolutas, Relativas
+  
+freq_tf <- df.fugas.clean %>%
+           group_by(alcaldia, tipo_de_falla) %>%
+           summarise(n = n()) %>%
+           mutate(prop =  paste(round(100*prop.table(n), 2), "%", sep="")) 
+
+# Gráfico de Frecuencias absolutas
+
+graf_tf <- df.fugas.clean %>%
+          ggplot(aes(x = alcaldia, fill = tipo_de_falla)) +
+           geom_bar() +
+           #facet_wrap(~tipo_de_falla)+
+            labs(title = "Reportes por Tipo de Falla", 
+                 subtitle = "Por alcaldía. 2018-2022",
+                 x = "Alcaldia",
+                 y = "Frecuencia") +
+           theme_minimal() +
+           theme(axis.text.x  = element_text(angle = 90))
+graf_tf
+
+```
+
+### Distribuciones
+
+Mostrando los datos convertidos a un dataframe por día, donde se incluye una columna que es el conteo de las fallas de agua por alcaldía.
+
+```{r}
+
+# Tabla por alcaldía y por día
+
+BENITO_tf <- df.fugas.clean %>% 
+               select(fecha, alcaldia, folio, tipo_de_falla) %>%
+               filter(alcaldia == 'BENITO JUAREZ') %>%
+               group_by(fecha) %>%
+               summarise(count = n(), .groups = 'drop')
+
+# Histogramas 
+
+
+aa1tf <- BENITO_tf  %>%
+    ggplot(aes(count)) +
+    geom_histogram(bins = 5) +
+    #facet_wrap(~indice_des) +
+    labs(title = "Histograma", 
+        x = "Reportes de Fallas",
+        y = "Frequency") + 
+    theme_minimal()
+
+aa1tf
+
+
+# Boxplot
+
+aa2tf <- BENITO_tf  %>%
+    ggplot(aes(y=count)) +
+    geom_boxplot(varwidth = TRUE, alpha=0.2) +
+    labs(title = "Boxplot", 
+        x = "Reportes de Fallas",
+        y = "Frequency")+ 
+    theme_minimal()
+
+aa2tf
+
+
+aa3tf <- BENITO_tf %>%
+      ggplot(aes(x = count)) +
+      geom_density() + 
+      guides(fill = guide_legend(title = "Reportes de Fallas"))+
+      labs(title = "Densidad", 
+        x = "Reportes de Fallas",
+        y = "Frequency")+ 
+      theme_classic()
+
+aa3tf
+
+
+# Gráfica de Dispersión 
+
+aa4tf <- BENITO_tf %>%
+      ggplot(aes(x = fecha, y= count)) +
+      geom_line() + 
+      guides(fill = guide_legend(title = "Reportes de Fallas"))+
+      labs(title = "Serie de Tiempo", 
+        x = "Tiempo: días",
+        y = "Reportes de Fallas")+ 
+      theme_classic()
+
+aa4tf
+
+
+# Para usar plot_grid se necesita la librería cowplot
+library(cowplot)
+
+completo <- plot_grid( aa1tf, aa2tf, aa3tf, aa4tf)
+
+
+
+```
+
+**Medidas de Tendencia Central y Dispersión**
+
+Columnas numéricas: count
+
+```{r}
+
+df.medidas.tf <- data.frame(Medidas = calcular_medidas(BENITO_tf, 2), 
+                             row.names = c('Máximo', 'Mínimo',
+                                           'Media', 'Mediana', 'Varianza', 
+                                           'Desviación Estándar', 'Rango IQ',
+                                           '1q', '2q', '3q', '2d', '9d',
+                                           "Skewness", 'Curtosis'))
+
+
+df.medidas.tf
+
+```
+
+```{r}
+
+# Outliers 
+
+BENITO_OUT_tf <- df.fugas.clean %>%
+              filter(alcaldia == 'BENITO JUAREZ') %>%
+              group_by(fecha, tipo_de_falla, quien_atiende, colonia_datos_abiertos) %>%
+              summarise(count = n(), .groups = 'drop') %>%
+              filter(count > 50)
+  
+BENITO_OUT_tf
+```
+
+### Principales inferencias de la información
+
+Interpretación y Conclusiones
+
+```{r}
+graf_tf
+
+```
+
+```{r}
+completo
+```
+
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de las alcaldías, podemos destacar que la asimetría nos indica una distribución con una cola a la derecha, lo que vemos en la gráfica de densidad.
+
+Tomando como referencia los deciles, los cuartiles, el IQ y el diagrama de caja podemos decir que tenemos pocos valores atípicos en nuestra distribución, los cuales no se encuentran tan alejados de nuestros datos centrales. Estos outliers nos representan una posible falla en la red de distribución del agua en la alcaldía debido a que los reportes fueron por de falta de agua.
+
+Álvaro Obregón
+
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola a la derecha, lo que vemos en la gráfica de densidad.
+
+Tomando como referencia los deciles, los cuartiles, el IQ y el diagrama de caja podemos decir que tenemos pocos valores atípicos en nuestra distribución, los cuales no se encuentran tan alejados de nuestros datos centrales. Estos outliers nos representan una posible falla en la red de distribución del agua en la alcaldía debido a que los reportes fueron por de falta de agua.
+
+Azcapotzalco
+
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola muy pronunciada a la derecha, lo que vemos en la gráfica de densidad. Tomando como referencia los deciles, los cuartiles, el IQ y el diagrama de caja podemos decir que en esta alcaldía no tenemos valores atípicos. Lo que nos indica que aunque sí hay fallas, no hay una inclunación irregular hacia una sola una. Pudiendo concluir que se tiene un funcionamiento regular.
+
+Benito Juárez
+
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola a la derecha, lo que vemos en la gráfica de densidad. Tomando como referencia los deciles, los cuartiles, el IQ y el diagrama de caja podemos decir que tenemos bastantes valores atípicos en nuestra distribución, los cuales se encuentran muy alejados de nuestros datos centrales. Estos outliers nos representan una posible falla en la red de distribución del agua en la alcaldía debido a que todos los reportes fueron por falta de agua.
+
+Coyoacán
+
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una ligera cola hacia la derecha, lo que vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja podemos decir que tenemos pocos valores atípicos en nuestra distribución, los cuales se encuentran un poco alejados de nuestro decil 9. Estos outliers nos representan una posible falla en la red de distribución del agua en la alcaldía debido a que los reportes recibidos fueron por falta de agua.
+
+Cuajimalpa de Morelos
+
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una pequeña cola hacia la derecha, lo que vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja notamos que no tenemos valores atípicos en nuestra distribución,lo que nos indica un funcionamiento regular de la red de distribución.
+
+Cuauhtémoc
+
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola hacia la derecha bastante pronunciada, lo que también vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja notamos que no tenemos valores atípicos en nuestra distribución,lo que nos indica un funcionamiento regular de la red de distribución.
+
+Gustavo A. Madero
+
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola hacia la derecha, lo que también vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja podemos decir que tenemos pocos valores atípicos en nuestra distribución.Aunque estos outliers no están tan alejados de nustros datos centrales, nos indican que la falla predominante en esta alcaldía es la falta de agua.
+
+Iztacalco
+
+Al revisar los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola hacia la derecha, lo que también vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja podemos decir que no tenemos valores atípicos en nuestra distribución,lo que nos indica un funcionamiento regular de la red de distribución.
+
+Iztapalapa
+
+Se puede observar que la mayoría de los reportes de fallas se deben a falta de agua, sin embargo, una parte importante de los reportes se debe también a las fugas, prácticamente no se llevan a cabo reportes de mala calidad del agua. Podemos notar un importante aumento de reportes en el mes de septiembre del 2018, posteriormente, vemos picos de actividad, sin embargo, la tendencia es decreciente.
+
+Magdalena Contreras
+
+En esta alcaldía podemos observar que la cantidad de reportes es mucho menor en general, sin embargo, como en las demás alcaldías, la mayor parte de reportes se debe a falta de agua. A diferencia de la mayoría de las otras alcaldías, podemos ver que un incremento importante se realizó en julio del 2019, fecha atípica en las demás alcaldías.
+
+Miguel Hidalgo
+
+La distribución de los reportes por fugas de agua en esta alcaldía es una distribución un poco mas normal que en el resto, se pueden ver picos importantes en marzo del 2019 y en enero del 2020 Milpalta Es la alcaldía donde se presentan menos reportes de fallas en el suministro de agua, esto podría deberse a que gran parte es zona rural, no se comporta de manera normal, y presenta muchos valores atípicos.
+
+Tlahuac
+
+En esta alcaldía la distribución es parecida a la alcaldía de Milpalta, ambas son zonas rurales, sin embargo, se presentaron muchos mas reportes, la mayor parte de los datos se presentan en el primer semestre del 2019.
+
+Tlalpan
+
+En esta alcaldía la distribución no se presenta de manera normal, hay una gran variación de los datos y no son uniformes, se observan muchos datos atípicos, hay bastantes reportes esto podría ser porque es una alcaldía con alta densidad poblacional.
+
+Venustiano Carranza
+
+Podemos observar que los datos en esta alcaldía no son uniformes, la distribución nos dice que la mayor parte de los eventos son por falta de agua y varían de manera importante de mes a mes, se observan valores atípicos de manera constante.
+
+Xochimilco
+
+Se observa una cola hacia la izquierda, indicando que la mayoría de los reportes realizados se llevan a cabo para reportar falta del suministro de agua potable y los reportes se agrupa la mayoría a la izquierda y disminuye la incidencia a lo largo del tiempo.
+
+## Metodología del Modelo
+
+**Librerías**
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tseries)
+library(forcats)
+library(forecast)
+library(stats)
+
+#list.files()
+
+options(scipen=999)
+
+```
+
+**Lectura de la base, y agrupación por fecha.**
+
+Se decidió utilizar los datos hasta el 01-12-2021, y dejar el mes de diciembre de 2021 para probar el modelo.
+
+```{r}
+
+#Lectura de archivo
+agua_cdmx<- read.csv('E:/BEDU/Curso 5/Proyecto/Datos/reportes_agua_hist.csv')
+
+agua_serie<- agua_cdmx %>% select(fecha) %>% group_by(fecha ) %>% summarise(reportes=n())
+agua_serie$fecha<- as.Date(agua_serie$fecha)
+
+#esta base nos ayudara a comprobar una vez validado el modelo
+serie_comprobadora<-agua_serie %>% filter(fecha>="2021-12-01")
+
+#Filtramos la fecha y graficamos
+agua_serie<-agua_serie %>% filter(fecha<"2021-12-01")
+
+ggplot(agua_serie, aes(x=fecha,y = reportes)) +
+  geom_line()
+
+```
+
+**Serie de tiempo**
+
+```{r}
+
+#Creamos la serie de tiempo
+serie_agua<-ts(agua_serie,frequency=365, start=c(2018, 1))
+decompose(serie_agua[,2]) %>% plot()
+adf.test(serie_agua[,2], alternative = "stationary")
+
+```
+
+*Contraste de hipótesis:*
+
+-   H0: No estacionaria
+
+-   H1: Estacionaria
+
+Tras realizar la prueba aumentada de Dickey-Fuller (ADF), obtenemos un p-valor = 0.01.
+
+Como el **p-valor \< 0.05**, rechazamos H0, la serie es estacionaria.
+
+**Realizando la prueba de autocorrelación podemos ver que la serie no tiene una caída exponencial**
+
+```{r}
+
+autoplot(acf(serie_agua[,2])) 
+```
+
+Aunque la serie presenta de origen estacionariedad, probamos corriendo la función ndiffs(), para verificar si es necesario aplicar alguna diferencia al momento de correr el modelo.
+
+La función ndiffs nos muestra que la serie debería tener 1 diferencia.
+
+```{r}
+ndiffs(serie_agua[,2]) 
+```
+
+*A partir de este gráfico podemos ver que ya se crea un cambio exponencial en la autocorrelación.*
+
+```{r}
+autoplot(acf(diff(serie_agua[,2]))) 
+```
+
+Por ello aplicaremos "Una diferencia" para trabajar el modelo y observamos graficamente como se comporta la serie.
+
+```{r}
+d1_agua<-diff(serie_agua[,2])
+
+autoplot(d1_agua)  
+```
+
+Corroboramos estacionaridad.
+
+```{r}
+adf.test(d1_agua,alternative="stationary") 
+```
+
+Como podemos ver en el gráfico ahora la distribución se ajusta a una media cero, con un comportamiento aleatorio. Esto se corrobora de nuevo con la prueba Dicky-Fuller Aumentada donde el P-value = 0.01, por ende P-value \< 0.05, se afirma la estacionariedad para trabajar en la seri.e
+
+EL valor a usar de "d" sera igual a 1.
+
+**MA**
+
+Para encontrar los valores que ocuparan los parámetros para p y q del Modelo, aplicaremos las pruebas de autocorrelación y autocorrelación parcial, esta prueba la aplicaremos a la serie generada con una diferencia.
+
+```{r}
+autoplot(acf(d1_agua))
+```
+
+Como vemos en el gráfico el lag 2 es el que sobre sale, así como el lag 3 \# q = 2 , 3
+
+**AR**
+
+Aplicaremos la prueba de correlación parcial para obtener en número de AR(Auto regresivos) a usar en el modelo.
+
+```{r}
+autoplot(pacf(d1_agua))
+
+```
+
+En el gráfico obtenido observamos que los lags posibles son para p:
+
+p=2,3,4,5
+
+**ARIMA(p,d,q)**
+
+De acuerdo a los valores obtenidos previamente se plantean los siguientes modelos:
+
+```{r}
+# Modelo 1 (2,1,2)
+m1<-arima(serie_agua[,2],order = c(2,1,2))
+m1
+bx_m1<-Box.test(residuals(m1),type="Ljung-Box")
+
+#Modelo 2 (3,1,2)
+m2<-arima(serie_agua[,2],order = c(3,1,2))
+m2
+bx_m2<-Box.test(residuals(m2),type="Ljung-Box")
+
+#Modelo 3 (4,1,2)
+m3<-arima(serie_agua[,2],order = c(4,1,2))
+m3
+bx_m3<-Box.test(residuals(m3),type="Ljung-Box")
+
+#Modelo 4 (5,1,2)
+m4<-arima(serie_agua[,2],order = c(5,1,2))
+m4
+bx_m4<-Box.test(residuals(m4),type="Ljung-Box")
+
+#Modelo 5 (2,1,3)
+m5<-arima(serie_agua[,2],order = c(2,1,3))
+m5
+bx_m5<-Box.test(residuals(m5),type="Ljung-Box")
+
+#Modelo 6 (3,1,3)
+m6<-arima(serie_agua[,2],order = c(3,1,3))
+m6
+bx_m6<-Box.test(residuals(m6),type="Ljung-Box")
+
+#Modelo 7 (4,1,3)
+m7<-arima(serie_agua[,2],order = c(4,1,3))
+m7
+bx_m7<-Box.test(residuals(m7),type="Ljung-Box")
+
+#Modelo 8 (5,1,3)
+m8<-arima(serie_agua[,2],order = c(5,1,3))
+m8
+bx_m8<-Box.test(residuals(m8),type="Ljung-Box")
+
+
+#Tabla Modelos
+modelos_p<-data.frame("ARIMA" = c("Modelo 1 (2,1,2)","Modelo 2 (3,1,2)",
+                                "Modelo 3 (4,1,2)","Modelo 4 (5,1,2)","Modelo 5 (2,1,3)",
+                                "Modelo 6 (3,1,3)","Modelo 7 (4,1,3)","Modelo 8 (5,1,3)"),
+                      "AIC" = c(m1$aic,m2$aic,m3$aic,m4$aic,m5$aic,m6$aic,m7$aic,m8$aic),
+                      "p_value_Ljunk_Box"=c(bx_m1$p.value, bx_m2$p.value, bx_m3$p.value,
+                                            bx_m4$p.value, bx_m5$p.value, bx_m6$p.value,
+                                            bx_m7$p.value, bx_m8$p.value)
+                      )
+
+modelos_p<- modelos_p %>% 
+            mutate("p_value>0.05" = ifelse(p_value_Ljunk_Box >0.05,"VERDADERO" ,"FALSO"))
+
+modelos_p
+
+```
+
+*La tabla nos muestra los valores AIC y el p_value de la prueba Ljung-Box*.
+
+Donde el modelo 4 y 8 presenta los valores mas pequeños para el AIC, pero si revisamos los residuales de donde nace el P_value de la prueba Ljunk Box, vemos que en el modelo 8 el p-value es menor a 0.05 por lo que se muestra que existe autocorrelación en los residuos
+
+Para validar si los residuos se distribuyen de forma normal, se aplica el test de normalidad Shapiro-Wilk, que es una prueba estadística utilizada para evaluar si una muestra de datos sigue una distribución normal.
+
+Las hipótesis nula y alternativa del test de Shapiro-Wilk son las siguientes:
+
+-   **H0: Los residuos siguen una distribución normal.**
+
+-   **H1: Los residuos NO siguen una distribución normal.**
+
+El **valor p es menor que un nivel de significancia de 0.05, se puede rechazar la hipótesis nula** y concluir que la muestra no sigue una distribución normal.
+
+```{r}
+shapiro.test(m4$residuals)
+```
+
+Los errores se mueven alrededor de una media = 0
+
+```{r}
+
+autoplot(residuals(m4))
+
+```
+
+Los valores son normales ya que descansan en una línea y no están por todos lados
+
+```{r}
+errores<-residuals(m4)
+qqnorm(errores)
+qqline(errores,col="red",lwd=2) 
+```
+
+**Una vez elegido el mejor modelo procedemos a crear nuestro pronóstico**
+
+```{r}
+pronostico<-forecast(m4, h=31, level = 95)
+autoplot(pronostico)
+
+autoplot(pronostico$mean, col="blue")+
+  geom_line(aes(y=pronostico$upper),col="green")+ geom_point(aes(y=pronostico$upper))+
+  geom_line(aes(y=pronostico$lower),col="green")+ geom_point(aes(y=pronostico$lower))+
+  geom_line(aes(y=serie_comprobadora$reportes),col="red")+ geom_point(aes(y=serie_comprobadora$reportes))
+
+```
+
+### Resultados Shiny
+
+Link al Cloud para ver la aplicación Shiny.
+
+## Conclusiones
+
+Interpretación de los resultados del modelo
+
+## Referencias
+
+-   Limache Sandoval, E. M. (2021). Modelo ARIMA sobre el consumo de agua de uso poblacional en la ciudad de Tacna. *REVISTA VERITAS ET SCIENTIA - UPT*, *10*(1), 69–82. https://doi.org/10.47796/ves.v10i1.461
+
+-   Datos Abiertos: Consumo de agua. SACMEX <https://datos.cdmx.gob.mx/sv/dataset/consumo-agua>
+
+-   Datos Abiertos: Reportes de agua. SACMEX <https://datos.cdmx.gob.mx/dataset/reportes-de-agua>
+
+## Integrantes:
+
+-   Diego Rosales
+
+-   Carlos Guerra
+
+-   Jorge Limas
+
+-   Pedro García
+
+-   Alexis Leal
+
+-   Taryn Galindo
