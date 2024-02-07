@@ -6,7 +6,7 @@ format:
     theme: journal
     toc: true 
     code-fold: false
-    code-tools: true 
+    code-tools: false
 editor: visual
 ---
 
@@ -18,9 +18,9 @@ editor: visual
 
 El consumo general de agua en México es uno de las preocupaciones más grandes de los últimos años debido a la creciente escasez en toda la República. Con los años, se han registrado cientos de casos donde las demandas de agua potable a viviendas han excedido debido al incremento de viviendas, población y la falta de mantenimiento en el servicio de tuberías, lo que ha causado fugas de agua constantemente.
 
-Nuestro trabajo pretende analizar datos del consumo del agua en las alcaldías de la Ciudad de México obtenidos de SACMEX, comparando los resultados de los tres primeros bimestres de 2019. También analizar los registros de reportes de fugas de agua, mala calidad y falta de agua en la Ciudad de México, obtenidos de SACMEX a partir de 2020 con un modelo de series de tiempo.
+Nuestro trabajo pretende analizar datos del consumo del agua en las alcaldías de la Ciudad de México obtenidos de SACMEX, comparando los resultados de los tres primeros bimestres de 2019. También analizar los registros de reportes de fugas de agua, mala calidad y falta de agua en la Ciudad de México, obtenidos de SACMEX a partir de 2018 con un modelo de series de tiempo.
 
-El objetivo del proyecto es poder evaluar y predecir la cantidad de fugas de agua en la Ciudad de México, haciendo una comparación con el incremento de consumo de agua en las diferentes alcaldías de la Ciudad de México.
+El objetivo del proyecto es poder evaluar y predecir la cantidad de fugas de agua en la haciendo una comparación con el incremento de consumo de agua en las diferentes alcaldías de la Ciudad de México.
 
 ## Descripción de nuestra Base de Datos.
 
@@ -58,7 +58,7 @@ df.fugas <- read.csv('E:/BEDU/Curso 5/Proyecto/Datos/reportes_agua_hist.csv')
 
 ### Preprocesamiento de Datos
 
-**Descripción inicial de los atributos de los dato**
+**Descripción inicial de los atributos de los datos**
 
 ```{r}
 
@@ -506,7 +506,7 @@ df.medidas.ct
 levels(df.consumo.clean$alcaldia)
 ```
 
-Se puede observar en la mayoría de las distribuciones de las alcaldías, que los datos de consumo de agua se encuentran en un rango que va desde 0 a 4000 cuando son consumos totales de agua en metros cúbicos en todos los sectores de desarrollo socioeconómico. Mientras que presentan un consumo promedio que se centra en un rango de 0 a 100 metros cúbicos de agua.
+Se puede observar en la mayoría de las distribuciones de las alcaldías, que los datos de consumo de agua se encuentran en un rango que va desde 0 a 4000 metros cúbicos cuando son consumos totales de aguaen todos los sectores de desarrollo socioeconómico. Mientras que presentan un consumo promedio que se centra en un rango de 0 a 100 metros cúbicos de agua.
 
 Por otra parte, el conjunto de observaciones que tiene más frecuencia en su consumo total de agua se encuentra en el sector con índice de desarrollo bajo y en el popular en la mayoría de las alcaldías, con algunas excepciones como Benito Juárez, Cuajimalpa, y Coyoacán donde el sector con índice de desarrollo alto también contiene la mayoría de los consumos totales. Mientras que en el consumo promedio los sectores con índice de desarrollo bajo y popular representan el conjunto más significativo de los datos.
 
@@ -781,31 +781,45 @@ Tomando como referencia los deciles, los cuartiles, el IQ y el diagrama de caja 
 
 Azcapotzalco
 
-Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola muy pronunciada a la derecha, lo que vemos en la gráfica de densidad. Tomando como referencia los deciles, los cuartiles, el IQ y el diagrama de caja podemos decir que en esta alcaldía no tenemos valores atípicos. Lo que nos indica que aunque sí hay fallas, no hay una inclunación irregular hacia una sola una. Pudiendo concluir que se tiene un funcionamiento regular.
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola muy pronunciada a la derecha, lo que vemos en la gráfica de densidad.
+
+Tomando como referencia los deciles, los cuartiles, el IQ y el diagrama de caja podemos decir que en esta alcaldía no tenemos valores atípicos. Lo que nos indica que aunque sí hay fallas, no hay una inclunación irregular hacia una sola una. Pudiendo concluir que se tiene un funcionamiento regular.
 
 Benito Juárez
 
-Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola a la derecha, lo que vemos en la gráfica de densidad. Tomando como referencia los deciles, los cuartiles, el IQ y el diagrama de caja podemos decir que tenemos bastantes valores atípicos en nuestra distribución, los cuales se encuentran muy alejados de nuestros datos centrales. Estos outliers nos representan una posible falla en la red de distribución del agua en la alcaldía debido a que todos los reportes fueron por falta de agua.
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola a la derecha, lo que vemos en la gráfica de densidad.
+
+Tomando como referencia los deciles, los cuartiles, el IQ y el diagrama de caja podemos decir que tenemos bastantes valores atípicos en nuestra distribución, los cuales se encuentran muy alejados de nuestros datos centrales. Estos outliers nos representan una posible falla en la red de distribución del agua en la alcaldía debido a que todos los reportes fueron por falta de agua.
 
 Coyoacán
 
-Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una ligera cola hacia la derecha, lo que vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja podemos decir que tenemos pocos valores atípicos en nuestra distribución, los cuales se encuentran un poco alejados de nuestro decil 9. Estos outliers nos representan una posible falla en la red de distribución del agua en la alcaldía debido a que los reportes recibidos fueron por falta de agua.
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una ligera cola hacia la derecha, lo que vemos en la gráfica de densidad.
+
+Revisando los deciles, cuartiles, el IQ y el diagrama de caja podemos decir que tenemos pocos valores atípicos en nuestra distribución, los cuales se encuentran un poco alejados de nuestro decil 9. Estos outliers nos representan una posible falla en la red de distribución del agua en la alcaldía debido a que los reportes recibidos fueron por falta de agua.
 
 Cuajimalpa de Morelos
 
-Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una pequeña cola hacia la derecha, lo que vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja notamos que no tenemos valores atípicos en nuestra distribución,lo que nos indica un funcionamiento regular de la red de distribución.
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una pequeña cola hacia la derecha, lo que vemos en la gráfica de densidad.
+
+Revisando los deciles, cuartiles, el IQ y el diagrama de caja notamos que no tenemos valores atípicos en nuestra distribución,lo que nos indica un funcionamiento regular de la red de distribución.
 
 Cuauhtémoc
 
-Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola hacia la derecha bastante pronunciada, lo que también vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja notamos que no tenemos valores atípicos en nuestra distribución,lo que nos indica un funcionamiento regular de la red de distribución.
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola hacia la derecha bastante pronunciada, lo que también vemos en la gráfica de densidad.
+
+Revisando los deciles, cuartiles, el IQ y el diagrama de caja notamos que no tenemos valores atípicos en nuestra distribución,lo que nos indica un funcionamiento regular de la red de distribución.
 
 Gustavo A. Madero
 
-Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola hacia la derecha, lo que también vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja podemos decir que tenemos pocos valores atípicos en nuestra distribución.Aunque estos outliers no están tan alejados de nustros datos centrales, nos indican que la falla predominante en esta alcaldía es la falta de agua.
+Analizando los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola hacia la derecha, lo que también vemos en la gráfica de densidad.
+
+Revisando los deciles, cuartiles, el IQ y el diagrama de caja podemos decir que tenemos pocos valores atípicos en nuestra distribución.Aunque estos outliers no están tan alejados de nustros datos centrales, nos indican que la falla predominante en esta alcaldía es la falta de agua.
 
 Iztacalco
 
-Al revisar los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola hacia la derecha, lo que también vemos en la gráfica de densidad. Revisando los deciles, cuartiles, el IQ y el diagrama de caja podemos decir que no tenemos valores atípicos en nuestra distribución,lo que nos indica un funcionamiento regular de la red de distribución.
+Al revisar los datos estadísticos y las gráficas obtenidas a partir de la información de la alcaldía. Podemos destacar que la asimetría nos indica una distribución con una cola hacia la derecha, lo que también vemos en la gráfica de densidad.
+
+Revisando los deciles, cuartiles, el IQ y el diagrama de caja podemos decir que no tenemos valores atípicos en nuestra distribución,lo que nos indica un funcionamiento regular de la red de distribución.
 
 Iztapalapa
 
@@ -932,7 +946,7 @@ Corroboramos estacionaridad.
 adf.test(d1_agua,alternative="stationary") 
 ```
 
-Como podemos ver en el gráfico ahora la distribución se ajusta a una media cero, con un comportamiento aleatorio. Esto se corrobora de nuevo con la prueba Dicky-Fuller Aumentada donde el P-value = 0.01, por ende P-value \< 0.05, se afirma la estacionariedad para trabajar en la seri.e
+Como podemos ver en el gráfico ahora la distribución se ajusta a una media cero, con un comportamiento aleatorio. Esto se corrobora de nuevo con la prueba Dicky-Fuller Aumentada donde el P-value = 0.01, por ende P-value \< 0.05, se afirma la estacionariedad para trabajar en la serie.
 
 EL valor a usar de "d" sera igual a 1.
 
@@ -1024,7 +1038,7 @@ modelos_p
 
 *La tabla nos muestra los valores AIC y el p_value de la prueba Ljung-Box*.
 
-Donde el modelo 4 y 8 presenta los valores mas pequeños para el AIC, pero si revisamos los residuales de donde nace el P_value de la prueba Ljunk Box, vemos que en el modelo 8 el p-value es menor a 0.05 por lo que se muestra que existe autocorrelación en los residuos
+Donde el modelo 4 y 8 presental los valores mas pequeños para el AIC, pero si revisamos los residuales de donde nace el P_value de la prueba Ljunk Box, vemos que en el modelo 8, el p-value es menor a 0.05 por lo que se muestra que existe autocorrelación en los residuos.
 
 Para validar si los residuos se distribuyen de forma normal, se aplica el test de normalidad Shapiro-Wilk, que es una prueba estadística utilizada para evaluar si una muestra de datos sigue una distribución normal.
 
@@ -1048,7 +1062,7 @@ autoplot(residuals(m4))
 
 ```
 
-Los valores son normales ya que descansan en una línea y no están por todos lados
+Los valores son normales ya que descansan en una línea y no están dispersos.
 
 ```{r}
 errores<-residuals(m4)
@@ -1069,13 +1083,19 @@ autoplot(pronostico$mean, col="blue")+
 
 ```
 
-### Resultados Shiny
-
-Link al Cloud para ver la aplicación Shiny.
-
 ## Conclusiones
 
-Interpretación de los resultados del modelo
+Podemos observar que en el mes de prueba de Diciembre 2021, la línea roja representa los datos reales de la base de datos de SACMEX, mientras que el modelo sigue la línea azul del modelo ARIMA(5,1,2), y las líneas verdes representan una banda de ajuste del pronóstico.
+
+Creemos que el resultado es bastante bueno para predecir fallas en el sistema de agua de la Ciudad de México y para saber cuándo podemos esperar un aumento en el número de reportes.
+
+Consideramos de suma importancia seguir analizando estos temas, debido a la crisis hídrica que sufre actualmente la CDMX y que al discutir sobre este, se pone realce a la importancia de llevar a cabo acciones necesarias en el mantenimiento de la red de agua potable, y de esta forma garantizar el adecuado suministro para toda la población del Valle de México.
+
+### APP Shiny
+
+Link al Cloud para ver la aplicación Shiny. <https://alemora24.shinyapps.io/agua/>
+
+Rpubs <http://rpubs.com/alemora24/agua_cdmx>
 
 ## Referencias
 
